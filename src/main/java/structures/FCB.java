@@ -17,6 +17,8 @@ public class FCB {
 
     public int getStartBlock(){return startBlock;}
 
+    public String getFileName(){return fileName;}
+
     public void printFCB(){
         System.out.println("FileSize" + fileSize); //NEED TO ADD KB
         System.out.println("StartBlock"+startBlock);

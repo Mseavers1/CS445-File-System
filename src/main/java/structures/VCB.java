@@ -26,21 +26,22 @@ public class VCB {
         int totalNumberOfBlocks = (int) Math.ceil((float) size / (float) sizeOfBlocks);
 
         // Checks every position in bitmap to find an opening with the correct number of free spaces
-        for (int i = 1; i<= numberOfBlocks - totalNumberOfBlocks; i++){
+        for (int i = 1; i <= numberOfBlocks - totalNumberOfBlocks; i++){
             boolean available = true;
 
+            // Checks starting from i to the full length of blocks needed to see if there is space
             for (int j = i; j <= i + totalNumberOfBlocks; j++){
-                if (blockBitMap[j]){
+                if (blockBitMap[j]) {
                     available = false;
                     break;
                 }
             }
 
             // Once the blocks are found, set them to be used & return starting block index
-            if (available){
+            if (available) {
+
                 for (int j = i; j < i + totalNumberOfBlocks; j++){
                     blockBitMap[j] = true;
-
                 }
 
                 freeBlockCount -= totalNumberOfBlocks;
@@ -56,7 +57,7 @@ public class VCB {
 
         // Convert size to number of blocks
         int totalNumberOfBlocks = (int) Math.ceil((float) size / (float) sizeOfBlocks);
-        
+
         for (int i = startBlock; i < startBlock + totalNumberOfBlocks; i++) {
             blockBitMap[i] = false;
         }
