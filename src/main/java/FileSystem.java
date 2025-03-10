@@ -1,7 +1,4 @@
-import structures.Directory;
-import structures.ProcessOpenFileTable;
-import structures.SystemOpenFileTable;
-import structures.VCB;
+import structures.*;
 
 public class FileSystem {
 
@@ -18,8 +15,19 @@ public class FileSystem {
     }
 
     // Creates a new file
-    public void Create() {
+    public void Create(String fileName, int size) {
 
+        // Allocate the blocks required for file
+        int startBlock = vcb.allocateBlocks(size);
+
+        if(startBlock == -1) {
+            System.out.println("Not enough space to create"+fileName);
+            return;
+        }
+
+        FCB file = new FCB(fileName, size, startBlock);
+        directory.addFile(file);
+        System.out.println("Created File"+fileName+ "StartBlock" +startBlock +"sizeinblocks"+size);
     }
 
     // Opens a non-opened file

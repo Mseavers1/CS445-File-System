@@ -21,30 +21,46 @@ public class VCB {
     }
 
     public synchronized int allocateBlocks(int size){
-        for (int i = 1; i<= numberOfBlocks - size; i++){
+
+        // Convert size to number of blocks
+        int totalNumberOfBlocks = (int) Math.ceil((float) size / (float) sizeOfBlocks);
+
+        // Checks every position in bitmap to find an opening with the correct number of free spaces
+        for (int i = 1; i<= numberOfBlocks - totalNumberOfBlocks; i++){
             boolean available = true;
-            for (int j = i; j<= i + size; j++){
+
+            for (int j = i; j <= i + totalNumberOfBlocks; j++){
                 if (blockBitMap[j]){
                     available = false;
                     break;
                 }
             }
+
+            // Once the blocks are found, set them to be used & return starting block index
             if (available){
-                for (int j = i; j < i+size ; j++){
-                    blockBitMap[j] = true; // mark them as used
+                for (int j = i; j < i + totalNumberOfBlocks; j++){
+                    blockBitMap[j] = true;
 
                 }
-                freeBlockCount -=size;
+
+                freeBlockCount -= totalNumberOfBlocks;
                 return i;
             }
         }
-        return -1; //No Contigious block
+
+        return -1; // No Contigious block
     }
+
     // Free allocated blocks
     public synchronized void freeBlocks(int startBlock, int size) {
-        for (int i = startBlock; i < startBlock + size; i++) {
+
+        // Convert size to number of blocks
+        int totalNumberOfBlocks = (int) Math.ceil((float) size / (float) sizeOfBlocks);
+        
+        for (int i = startBlock; i < startBlock + totalNumberOfBlocks; i++) {
             blockBitMap[i] = false;
         }
+
         freeBlockCount += size;
     }
 
