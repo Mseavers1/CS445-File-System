@@ -67,7 +67,13 @@ public class FileSystem {
 
         Iterator<FCB> iterator = directory.iterator();
 
+        // Loops through the directory to find the file, then deletes it
         while (iterator.hasNext()){
+
+            // What if the file is open? --> probably close it then deleted it?
+
+            // What if the file is currently being written to?
+
             FCB file = iterator.next();
             if(file.getFileName().equals(fileName)){
                 vcb.freeBlocks(file.getStartBlock(), file.getFileSize());
