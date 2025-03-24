@@ -87,12 +87,21 @@ public class FileSystem {
         systemTable.removeFile(fileName);
     }
 
-    // Writes to an open file
-    public void Write() {
+    /**
+     * Writes to a existing file
+     * @param fileName - name of the file
+     * @param size - size of the amount of data wanting to write in bytes
+     */
+    public void Write(String fileName, Integer size) {
 
     }
 
-    public void Read() {
+    /**
+     * Reads to a existing file
+     * @param fileName - name of the file
+     * @param size - size of the amount of data wanting to read in bytes
+     */
+    public void Read(String fileName, Integer size) {
 
     }
 
