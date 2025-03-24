@@ -1,19 +1,16 @@
 import structures.*;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.*;
 
 public class FileSystem {
 
-    private List<FCB> directory;
+    private Dictionary<String, FCB> directory;
     private VCB vcb;
     private SystemOpenFileTable systemTable;
     private ProcessOpenFileTable processTable;
 
     public FileSystem() {
-        directory = new ArrayList<>();
+        directory = new Hashtable<>();
         vcb = new VCB();
         systemTable = new SystemOpenFileTable();
         processTable = new ProcessOpenFileTable();
@@ -39,14 +36,20 @@ public class FileSystem {
 
         // Creates the file
         FCB file = new FCB(fileName, size, startBlock);
-        directory.add(file);
+        directory.put(fileName, file);
         System.out.println("Created File"+fileName+ "StartBlock" +startBlock +"sizeinblocks"+size);
     }
 
     // Opens a non-opened file
     public void Open(String fileName) {
 
-        // Add file to the system open file table, if not already
+        // Check to see if a process has the file opened
+        if (systemTable.containsFCB(fileName)) {
+
+        }
+
+        // If a process doesn't, add a new entry of the file into the system open file table
+        systemTable.addFile(fileName, );
 
 
     }
@@ -87,7 +90,13 @@ public class FileSystem {
     // Lists all files in the file system
     public void Dir() {
         System.out.println("Directory Listing");
-        for (FCB file: directory){
+
+        Enumeration<String> keys = directory.keys();
+
+        while (keys.hasMoreElements()) {
+            String fileName = keys.nextElement();
+            FCB file = directory.get(fileName);
+
             file.printFCB();
             System.out.println("-------------");
         }
@@ -96,23 +105,16 @@ public class FileSystem {
     // Deletes a file
     public void Delete(String fileName) {
 
-        Iterator<FCB> iterator = directory.iterator();
+        // What if the file is open? --> probably close it then deleted it?
 
-        // Loops through the directory to find the file, then deletes it
-        while (iterator.hasNext()){
+        // What if the file is currently being written to?
 
-            // What if the file is open? --> probably close it then deleted it?
+        FCB file = directory.get(fileName);
+        if(file.getFileName().equals(fileName)){
+            vcb.freeBlocks(file.getStartBlock(), file.getFileSize());
+            System.out.println("Deleted File" + fileName);
 
-            // What if the file is currently being written to?
-
-            FCB file = iterator.next();
-            if(file.getFileName().equals(fileName)){
-                vcb.freeBlocks(file.getStartBlock(), file.getFileSize());
-                iterator.remove();
-                System.out.println("Deleted File" + fileName);
-
-                return;
-            }
+            return;
         }
 
         System.out.println("File Not Found"+fileName);
