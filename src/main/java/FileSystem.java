@@ -43,15 +43,14 @@ public class FileSystem {
     // Opens a non-opened file
     public void Open(String fileName) {
 
-        // Check to see if a process has the file opened
+        // Check to see if a process has the file opened, if it does, increment open count only
         if (systemTable.containsFCB(fileName)) {
-
+            directory.get(fileName).incrementOpenCount();
+            return;
         }
 
         // If a process doesn't, add a new entry of the file into the system open file table
-        systemTable.addFile(fileName, );
-
-
+        systemTable.addFile(fileName, directory.get(fileName));
     }
 
     // Closes an opened file
