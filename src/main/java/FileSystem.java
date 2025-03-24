@@ -41,6 +41,9 @@ public class FileSystem {
     // Opens a non-opened file
     public void Open() {
 
+        // Add file to the system open file table, if not already
+
+
     }
 
     // Closes an opened file
