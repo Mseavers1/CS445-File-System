@@ -3,6 +3,7 @@ import structures.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class FileSystem {
 
@@ -18,7 +19,11 @@ public class FileSystem {
         processTable = new ProcessOpenFileTable();
     }
 
-    // Creates a new file
+    /**
+     * Creates a new file
+     * @param fileName - name of the file
+     * @param size - size of the file in bytes
+     */
     public void Create(String fileName, int size) {
 
         // Allocate the blocks required for file
@@ -39,7 +44,7 @@ public class FileSystem {
     }
 
     // Opens a non-opened file
-    public void Open() {
+    public void Open(String fileName) {
 
         // Add file to the system open file table, if not already
 
@@ -47,8 +52,31 @@ public class FileSystem {
     }
 
     // Closes an opened file
-    public void Close() {
+    public void Close(Integer handler) {
 
+        // Check if handler exist in the per process (Can't close if not-opened)
+        if (!processTable.containsHandler(handler)) return;
+
+        // Get filename
+        String fileName = processTable.getFileName(handler);
+
+        // Check if the file is opened, if not, throw an error b.c there should be an entry
+        if(!systemTable.containsFCB(fileName)) throw new NoSuchElementException("No FCB in the system open file table for file '" + fileName + "'!");
+
+        // Get FCB
+        FCB file = systemTable.getFCB(fileName);
+
+        // Remove process in per process table
+        processTable.removeProcess(handler);
+
+        // Decrement open count for file
+        file.decrementOpenCount();
+
+        // If there are other processes using the file, return
+        if (file.getOpenCount() > 0) return;
+
+        // If not, remove file from system open file table
+        systemTable.removeFile(fileName);
     }
 
     // Writes to an open file

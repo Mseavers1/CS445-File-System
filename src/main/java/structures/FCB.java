@@ -23,7 +23,8 @@ public class FCB {
 
     public String getFileName(){return fileName;}
 
-    public void setOpenCount(int openCount){this.openCount = openCount;}
+    public void incrementOpenCount(){openCount++;}
+    public void decrementOpenCount(){openCount--;}
 
     public void printFCB(){
         System.out.println("FileSize" + fileSize); //NEED TO ADD KB

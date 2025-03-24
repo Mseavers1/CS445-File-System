@@ -25,6 +25,18 @@ public class SystemOpenFileTable {
         return files.get(filename);
     }
 
+    public boolean containsFCB(String filename) {
+        return files.get(filename) != null;
+    }
+
+    /**
+     * Removes a file from the table
+     * @param filename - name of the file
+     */
+    public void removeFile(String filename) {
+        files.remove(filename);
+    }
+
     /**
      * Adds a file into the table
      * @param filename - name of the file
@@ -34,13 +46,13 @@ public class SystemOpenFileTable {
 
         // Add file only if the file is not already added
         if (files.get(filename) == null) {
-            fcb.setOpenCount(fcb.getOpenCount() + 1);
+            fcb.incrementOpenCount();
             files.put(filename, fcb);
             return;
         }
 
         // If already added, find and increment open count
-        files.get(filename).setOpenCount(fcb.getOpenCount() + 1);
+        files.get(filename).incrementOpenCount();
     }
 
 }
