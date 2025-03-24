@@ -40,7 +40,10 @@ public class FileSystem {
         System.out.println("Created File"+fileName+ "StartBlock" +startBlock +"sizeinblocks"+size);
     }
 
-    // Opens a non-opened file
+    /**
+     * Opens a file
+     * @param fileName - name of the file
+     */
     public void Open(String fileName) {
 
         // Check to see if a process has the file opened, if it does, increment open count only
@@ -53,7 +56,10 @@ public class FileSystem {
         systemTable.addFile(fileName, directory.get(fileName));
     }
 
-    // Closes an opened file
+    /**
+     * Closes a file
+     * @param handler - Unique handler of a process
+     */
     public void Close(Integer handler) {
 
         // Check if handler exist in the per process (Can't close if not-opened)
@@ -86,7 +92,13 @@ public class FileSystem {
 
     }
 
-    // Lists all files in the file system
+    public void Read() {
+
+    }
+
+    /**
+     * Lists all files in the directory
+     */
     public void Dir() {
         System.out.println("Directory Listing");
 
