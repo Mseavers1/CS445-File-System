@@ -1,5 +1,6 @@
 import structures.*;
 
+import java.io.IOException;
 import java.util.*;
 
 public class FileSystem {
@@ -8,12 +9,19 @@ public class FileSystem {
     private VCB vcb;
     private SystemOpenFileTable systemTable;
     private ProcessOpenFileTable processTable;
+    private DataBlock[] disk;
 
     public FileSystem() {
         directory = new Hashtable<>();
         vcb = new VCB();
         systemTable = new SystemOpenFileTable();
         processTable = new ProcessOpenFileTable();
+        disk = new DataBlock[vcb.getNumberOfBlocks()];
+
+        // Initialize the size of each block
+        for (int i = 0; i < disk.length; i++) {
+            disk[i] = new DataBlock(vcb.getSizeOfBlocks());
+        }
     }
 
     /**
@@ -47,13 +55,13 @@ public class FileSystem {
     public void Open(String fileName) {
 
         // Check to see if a process has the file opened, if it does, increment open count only
-        if (systemTable.containsFCB(fileName)) {
-            directory.get(fileName).incrementOpenCount();
-            return;
-        }
+        if (systemTable.containsFCB(fileName)) directory.get(fileName).incrementOpenCount();
 
         // If a process doesn't, add a new entry of the file into the system open file table
-        systemTable.addFile(fileName, directory.get(fileName));
+        else systemTable.addFile(fileName, directory.get(fileName));
+
+        // Add a new process
+        processTable.addProcess(fileName);
     }
 
     /**
@@ -90,18 +98,55 @@ public class FileSystem {
     /**
      * Writes to a existing file
      * @param fileName - name of the file
-     * @param size - size of the amount of data wanting to write in bytes
+     * @param data - size of the amount of data wanting to write in bytes
      */
-    public void Write(String fileName, Integer size) {
+    public void Write(String fileName, byte[] data) throws IOException {
+
+        // Is the file opened, if not, return
+        if (!systemTable.containsFCB(fileName)) return;
+
+        // Add new to per process
+        processTable.addProcess(fileName);
+
+        // Get FCB
+        FCB file = systemTable.getFCB(fileName);
+
+        int dataSize = data.length;
+        int blockSize = vcb.getSizeOfBlocks();
+        int startBlock = file.getStartBlock();
+        int blocksNeeded = (int) Math.ceil( (float) dataSize / (float) blockSize);
+
+        // Is there enough space? If not, give an error
+        if (dataSize > file.getFileSize()) throw new IOException("Data size (" + dataSize + " bytes) is larger than file size (" + file.getFileSize() + " bytes)");
+
+        // Store data into each block
+        for (int i = 0; i < blocksNeeded; i++) {
+
+            // Get index of block from disk
+            int blockID = startBlock + i;
+
+            // Get the subset of the data that can fit into the current block
+            byte[] dividedData = new byte[blockSize];
+            System.arraycopy(data, i * blockSize, dividedData, 0, (i + 1) * blockSize - 1);
+
+            // Store data
+            disk[blockID].storeData(dividedData);
+        }
+
+        // Close process once completed
+
 
     }
 
     /**
      * Reads to a existing file
      * @param fileName - name of the file
-     * @param size - size of the amount of data wanting to read in bytes
+     * @param dataSize - size of the amount of data wanting to read in bytes
      */
-    public void Read(String fileName, Integer size) {
+    public void Read(String fileName, int dataSize) {
+
+        // Is the file opened, if not, return
+        if (!systemTable.containsFCB(fileName)) return;
 
     }
 
