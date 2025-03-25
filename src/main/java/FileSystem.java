@@ -147,11 +147,12 @@ public class FileSystem {
      * Reads to an existing file (entire file)
      * @param handler - the unique id of the process
      * @return - the entire data from all blocks associate with file
+     * @throws IOException - the handler does not exist
      */
-    public byte[] Read(int handler) {
+    public byte[] Read(int handler) throws IOException {
 
-        // Does the handler exist? If not, return
-        if (!processTable.containsHandler(handler)) return;
+        // Does the handler exist? If not, throw error
+        if (!processTable.containsHandler(handler)) throw new IOException("The handler (" + handler + ") does not exist!");
 
         // Get filename
         String fileName = processTable.getFileName(handler);
