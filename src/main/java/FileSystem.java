@@ -1,6 +1,7 @@
 import structures.*;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class FileSystem {
@@ -51,8 +52,9 @@ public class FileSystem {
     /**
      * Opens a file
      * @param fileName - name of the file
+     * @return - Returns the handler id
      */
-    public void Open(String fileName) {
+    public int Open(String fileName) {
 
         // Check to see if a process has the file opened, if it does, increment open count only
         if (systemTable.containsFCB(fileName)) directory.get(fileName).incrementOpenCount();
@@ -61,7 +63,7 @@ public class FileSystem {
         else systemTable.addFile(fileName, directory.get(fileName));
 
         // Add a new process
-        processTable.addProcess(fileName);
+        return processTable.addProcess(fileName);
     }
 
     /**
@@ -96,17 +98,21 @@ public class FileSystem {
     }
 
     /**
-     * Writes to a existing file
-     * @param fileName - name of the file
-     * @param data - size of the amount of data wanting to write in bytes
+     * Writes to an existing file (starting at the beginning)
+     * @param handler - Unique handler id given when opened the file
+     * @param data - data in the form of bytes
+     * @throws IOException - caused when size of data is larger than the file size
      */
-    public void Write(String fileName, byte[] data) throws IOException {
+    public void Write(int handler, byte[] data) throws IOException {
 
-        // Is the file opened, if not, return
-        if (!systemTable.containsFCB(fileName)) return;
+        // Does the handler exist? If not, return
+        if (!processTable.containsHandler(handler)) return;
 
-        // Add new to per process
-        processTable.addProcess(fileName);
+        // Get filename
+        String fileName = processTable.getFileName(handler);
+
+        // Update state - Writing
+        processTable.UpdateProcess(handler, ProcessMetaData.WRITE);
 
         // Get FCB
         FCB file = systemTable.getFCB(fileName);
@@ -133,21 +139,47 @@ public class FileSystem {
             disk[blockID].storeData(dividedData);
         }
 
-        // Close process once completed
-
-
+        // Update state - Completed
+        processTable.UpdateProcess(handler, ProcessMetaData.IDLE);
     }
 
     /**
-     * Reads to a existing file
-     * @param fileName - name of the file
-     * @param dataSize - size of the amount of data wanting to read in bytes
+     * Reads to an existing file (entire file)
+     * @param handler - the unique id of the process
+     * @return - the entire data from all blocks associate with file
      */
-    public void Read(String fileName, int dataSize) {
+    public byte[] Read(int handler) {
 
-        // Is the file opened, if not, return
-        if (!systemTable.containsFCB(fileName)) return;
+        // Does the handler exist? If not, return
+        if (!processTable.containsHandler(handler)) return;
 
+        // Get filename
+        String fileName = processTable.getFileName(handler);
+
+        // Update state - Reading
+        processTable.UpdateProcess(handler, ProcessMetaData.READ);
+
+        // Get FCB
+        FCB file = systemTable.getFCB(fileName);
+
+        int blockSize = vcb.getSizeOfBlocks();
+        int startBlock = file.getStartBlock();
+        int totalBlocks = (int) Math.ceil( (float) file.getFileSize() / (float) blockSize);
+        int lastBlock = startBlock + totalBlocks - 1;
+        byte[] completedData = new byte[file.getFileSize()];
+        int sLocation = 0;
+
+        // Go to each block and pool bytes
+        for (int i = startBlock; i <= lastBlock; i++) {
+            byte[] blockData = disk[i].getDataBytes();
+            System.arraycopy(blockData, sLocation * blockSize, completedData, (sLocation + 1) * blockSize - 1, file.getFileSize());
+            sLocation++;
+        }
+
+        // Update state - Idle
+        processTable.UpdateProcess(handler, ProcessMetaData.IDLE);
+
+        return completedData;
     }
 
     /**
