@@ -1,7 +1,8 @@
+package misc;
+
 import structures.*;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class FileSystem {
@@ -46,7 +47,7 @@ public class FileSystem {
         // Creates the file
         FCB file = new FCB(fileName, size, startBlock);
         directory.put(fileName, file);
-        System.out.println("Created File"+fileName+ "StartBlock" +startBlock +"sizeinblocks"+size);
+        System.out.println("Created File ["+fileName+ "] Starting Block Number: " +startBlock + " Size of Block: "+size);
     }
 
     /**
