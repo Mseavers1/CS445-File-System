@@ -1,7 +1,8 @@
+package misc;
+
 import structures.*;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class FileSystem {
@@ -32,6 +33,12 @@ public class FileSystem {
      */
     public void Create(String fileName, int size) {
 
+        // Does filename already exist? If so, return
+        if (directory.get(fileName) != null) {
+            System.out.println(fileName + " already exist.");
+            return;
+        }
+
         // Allocate the blocks required for file
         int startBlock = vcb.allocateBlocks(size);
 
@@ -41,12 +48,10 @@ public class FileSystem {
             return;
         }
 
-        // Filename with the same name?
-
         // Creates the file
         FCB file = new FCB(fileName, size, startBlock);
         directory.put(fileName, file);
-        System.out.println("Created File"+fileName+ "StartBlock" +startBlock +"sizeinblocks"+size);
+        System.out.println("Created File ["+fileName+ "] Starting Block Number: " +startBlock + " Size of Block: "+size);
     }
 
     /**
