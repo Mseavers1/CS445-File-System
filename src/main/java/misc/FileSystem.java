@@ -33,6 +33,12 @@ public class FileSystem {
      */
     public void Create(String fileName, int size) {
 
+        // Does filename already exist? If so, return
+        if (directory.get(fileName) != null) {
+            System.out.println(fileName + " already exist.");
+            return;
+        }
+
         // Allocate the blocks required for file
         int startBlock = vcb.allocateBlocks(size);
 
@@ -41,8 +47,6 @@ public class FileSystem {
             System.out.println("Not enough space to create " + fileName);
             return;
         }
-
-        // Filename with the same name?
 
         // Creates the file
         FCB file = new FCB(fileName, size, startBlock);

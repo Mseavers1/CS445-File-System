@@ -17,7 +17,7 @@ public class Simulation {
         );
 
         Process process2 = new Process(fs, "Process2", new Process.ProcessBuilder()
-                .create("test.txt", 500)
+                //.create("test.txt", 9000)
                 .open("test.txt")
                 .write("test.txt", "I don't know what I am doing, but cool beans.")
                 .readString("test.txt")
