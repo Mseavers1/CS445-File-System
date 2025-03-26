@@ -7,7 +7,7 @@ import java.util.Queue;
 
 public class ProcessOpenFileTable {
 
-    private Dictionary<Integer, String> openFileTable;
+    private Dictionary<Integer, ProcessMetaData> openFileTable;
     private Queue<Integer> completedHandlers;
     private int highestHandler;
 
@@ -31,7 +31,7 @@ public class ProcessOpenFileTable {
     }
 
     public String getFileName(int handler) {
-        return openFileTable.get(handler);
+        return openFileTable.get(handler).getFileName();
     }
 
     /**
@@ -44,15 +44,18 @@ public class ProcessOpenFileTable {
         // Check to see if there are any used handlers, if so, use them
         if (!completedHandlers.isEmpty()) {
             int handler = completedHandlers.poll();
-            openFileTable.put(handler, fileName);
+            openFileTable.put(handler, new ProcessMetaData(fileName));
             return handler;
         }
 
         // If not, create a new handler and increment highest handler
         int handler = highestHandler++;
-        openFileTable.put(handler, fileName);
+        openFileTable.put(handler, new ProcessMetaData(fileName));
         return handler;
+    }
 
+    public void UpdateProcess(int handler, int state) {
+        openFileTable.get(handler).setState(state);
     }
 
 }

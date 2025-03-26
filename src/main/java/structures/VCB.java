@@ -65,4 +65,11 @@ public class VCB {
         freeBlockCount += size;
     }
 
+    public int getNumberOfBlocks() {
+        return numberOfBlocks;
+    }
+
+    public int getSizeOfBlocks() {
+        return sizeOfBlocks;
+    }
 }

@@ -1,5 +1,7 @@
 import structures.*;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 public class FileSystem {
@@ -8,12 +10,19 @@ public class FileSystem {
     private VCB vcb;
     private SystemOpenFileTable systemTable;
     private ProcessOpenFileTable processTable;
+    private DataBlock[] disk;
 
     public FileSystem() {
         directory = new Hashtable<>();
         vcb = new VCB();
         systemTable = new SystemOpenFileTable();
         processTable = new ProcessOpenFileTable();
+        disk = new DataBlock[vcb.getNumberOfBlocks()];
+
+        // Initialize the size of each block
+        for (int i = 0; i < disk.length; i++) {
+            disk[i] = new DataBlock(vcb.getSizeOfBlocks());
+        }
     }
 
     /**
@@ -43,17 +52,18 @@ public class FileSystem {
     /**
      * Opens a file
      * @param fileName - name of the file
+     * @return - Returns the handler id
      */
-    public void Open(String fileName) {
+    public int Open(String fileName) {
 
         // Check to see if a process has the file opened, if it does, increment open count only
-        if (systemTable.containsFCB(fileName)) {
-            directory.get(fileName).incrementOpenCount();
-            return;
-        }
+        if (systemTable.containsFCB(fileName)) directory.get(fileName).incrementOpenCount();
 
         // If a process doesn't, add a new entry of the file into the system open file table
-        systemTable.addFile(fileName, directory.get(fileName));
+        else systemTable.addFile(fileName, directory.get(fileName));
+
+        // Add a new process
+        return processTable.addProcess(fileName);
     }
 
     /**
@@ -88,21 +98,89 @@ public class FileSystem {
     }
 
     /**
-     * Writes to a existing file
-     * @param fileName - name of the file
-     * @param size - size of the amount of data wanting to write in bytes
+     * Writes to an existing file (starting at the beginning)
+     * @param handler - Unique handler id given when opened the file
+     * @param data - data in the form of bytes
+     * @throws IOException - caused when size of data is larger than the file size
      */
-    public void Write(String fileName, Integer size) {
+    public void Write(int handler, byte[] data) throws IOException {
 
+        // Does the handler exist? If not, return
+        if (!processTable.containsHandler(handler)) return;
+
+        // Get filename
+        String fileName = processTable.getFileName(handler);
+
+        // Update state - Writing
+        processTable.UpdateProcess(handler, ProcessMetaData.WRITE);
+
+        // Get FCB
+        FCB file = systemTable.getFCB(fileName);
+
+        int dataSize = data.length;
+        int blockSize = vcb.getSizeOfBlocks();
+        int startBlock = file.getStartBlock();
+        int blocksNeeded = (int) Math.ceil( (float) dataSize / (float) blockSize);
+
+        // Is there enough space? If not, give an error
+        if (dataSize > file.getFileSize()) throw new IOException("Data size (" + dataSize + " bytes) is larger than file size (" + file.getFileSize() + " bytes)");
+
+        // Store data into each block
+        for (int i = 0; i < blocksNeeded; i++) {
+
+            // Get index of block from disk
+            int blockID = startBlock + i;
+
+            // Get the subset of the data that can fit into the current block
+            byte[] dividedData = new byte[blockSize];
+            System.arraycopy(data, i * blockSize, dividedData, 0, (i + 1) * blockSize - 1);
+
+            // Store data
+            disk[blockID].storeData(dividedData);
+        }
+
+        // Update state - Completed
+        processTable.UpdateProcess(handler, ProcessMetaData.IDLE);
     }
 
     /**
-     * Reads to a existing file
-     * @param fileName - name of the file
-     * @param size - size of the amount of data wanting to read in bytes
+     * Reads to an existing file (entire file)
+     * @param handler - the unique id of the process
+     * @return - the entire data from all blocks associate with file
+     * @throws IOException - the handler does not exist
      */
-    public void Read(String fileName, Integer size) {
+    public byte[] Read(int handler) throws IOException {
 
+        // Does the handler exist? If not, throw error
+        if (!processTable.containsHandler(handler)) throw new IOException("The handler (" + handler + ") does not exist!");
+
+        // Get filename
+        String fileName = processTable.getFileName(handler);
+
+        // Update state - Reading
+        processTable.UpdateProcess(handler, ProcessMetaData.READ);
+
+        // Get FCB
+        FCB file = systemTable.getFCB(fileName);
+
+        int blockSize = vcb.getSizeOfBlocks();
+        int startBlock = file.getStartBlock();
+        int totalBlocks = (int) Math.ceil( (float) file.getFileSize() / (float) blockSize);
+        int lastBlock = startBlock + totalBlocks - 1;
+        byte[] completedData = new byte[file.getFileSize()];
+        int sLocation = 0;
+
+        // Go to each block and pool bytes
+        for (int i = startBlock; i <= lastBlock; i++) {
+            byte[] blockData = disk[i].getDataBytes();
+            System.arraycopy(blockData, sLocation * blockSize, completedData, (sLocation + 1) * blockSize - 1, file.getFileSize());
+            sLocation++;
+        }
+
+        // Update state - Idle
+        processTable.UpdateProcess(handler, ProcessMetaData.IDLE);
+
+        return completedData;
     }
 
     /**
