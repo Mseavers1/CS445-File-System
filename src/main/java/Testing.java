@@ -12,11 +12,11 @@ public class Testing {
         fs.Create("Test.txt", 2048);
         int handler = fs.Open("Test.txt");
 
-        fs.Write(handler, new byte[]{1,1,0,0,1,0,1});
+        fs.Write(handler, ByteConverter.convert("Hello There MikeOBits!"));
 
         byte[] output = fs.Read(handler);
 
-        System.out.println(Arrays.toString(output));
+        System.out.println(ByteConverter.convert(output));
 
         fs.Close(handler);
     }

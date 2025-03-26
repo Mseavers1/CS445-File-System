@@ -131,9 +131,12 @@ public class FileSystem {
             // Get index of block from disk
             int blockID = startBlock + i;
 
+            // Get length of either block or size
+            int remainingBytes = Math.min(blockSize, data.length - (i * blockSize));
+
             // Get the subset of the data that can fit into the current block
             byte[] dividedData = new byte[blockSize];
-            System.arraycopy(data, i * blockSize, dividedData, 0, (i + 1) * blockSize - 1);
+            System.arraycopy(data, i * blockSize, dividedData, 0, remainingBytes);
 
             // Store data
             disk[blockID].storeData(dividedData);
@@ -173,7 +176,7 @@ public class FileSystem {
         // Go to each block and pool bytes
         for (int i = startBlock; i <= lastBlock; i++) {
             byte[] blockData = disk[i].getDataBytes();
-            System.arraycopy(blockData, sLocation * blockSize, completedData, (sLocation + 1) * blockSize - 1, file.getFileSize());
+            System.arraycopy(blockData, 0, completedData, sLocation * blockSize, Math.min(blockSize, file.getFileSize() - (sLocation * blockSize)));
             sLocation++;
         }
 
