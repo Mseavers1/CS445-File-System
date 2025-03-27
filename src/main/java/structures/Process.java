@@ -41,12 +41,18 @@ public class Process extends Thread {
     private void executeInstruction(String instruction) throws IOException {
 
         String instruction_type = instruction.split(" ")[0];
-        String filename = instruction.split(" ")[1];
+        String filename = "";
+
+        if (instruction.split(" ").length > 1)
+            filename = instruction.split(" ")[1];
+
 
         if (Objects.equals(instruction_type, "--Create")) {
             int fileSize = Integer.parseInt(instruction.split(" ")[2]);
 
+            System.out.println();
             fileSystem.Create(filename, fileSize);
+            System.out.println();
         }
 
         else if (Objects.equals(instruction_type, "--Open")) {
@@ -61,13 +67,17 @@ public class Process extends Thread {
         else if (Objects.equals(instruction_type, "--ReadString")) {
             byte[] content = fileSystem.Read(handlers.get(filename));
 
+            System.out.println();
             System.out.println(filename + ": " + ByteConverter.convert(content));
+            System.out.println();
         }
 
         else if (Objects.equals(instruction_type, "--Read")) {
             byte[] content = fileSystem.Read(handlers.get(filename));
 
+            System.out.println();
             System.out.println(filename + ": " + Arrays.toString(content));
+            System.out.println();
         }
 
         else if (Objects.equals(instruction_type, "--Write")) {
@@ -87,11 +97,15 @@ public class Process extends Thread {
         }
 
         else if (Objects.equals(instruction_type, "--Dir")) {
+            System.out.println();
             fileSystem.Dir();
+            System.out.println();
         }
 
         else if (Objects.equals(instruction_type, "--Delete")) {
+            System.out.println();
             fileSystem.Delete(filename);
+            System.out.println();
         }
 
         else {
@@ -145,8 +159,8 @@ public class Process extends Thread {
             return this;
         }
 
-        public ProcessBuilder dir(String fileName) {
-            instructions.add("--Dir " + fileName);
+        public ProcessBuilder dir() {
+            instructions.add("--Dir ");
             return this;
         }
     }
