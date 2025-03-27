@@ -26,9 +26,8 @@ public class FCB {
     public void incrementOpenCount(){openCount++;}
     public void decrementOpenCount(){openCount--;}
 
-    public void printFCB(){
-        System.out.println("FileSize" + fileSize); //NEED TO ADD KB
-        System.out.println("StartBlock"+startBlock);
+    @Override
+    public String toString() {
+        return fileName + " (" + fileSize + " bytes)";
     }
-
 }

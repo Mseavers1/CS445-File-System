@@ -195,16 +195,14 @@ public class FileSystem {
      * Lists all files in the directory
      */
     public void Dir() {
-        System.out.println("Directory Listing");
+        System.out.println("All files in current directory:");
 
         Enumeration<String> keys = directory.keys();
 
         while (keys.hasMoreElements()) {
             String fileName = keys.nextElement();
             FCB file = directory.get(fileName);
-
-            file.printFCB();
-            System.out.println("-------------");
+            System.out.println("\t - " + file);
         }
     }
 
@@ -216,14 +214,15 @@ public class FileSystem {
         // What if the file is currently being written to?
 
         FCB file = directory.get(fileName);
-        if(file.getFileName().equals(fileName)){
+        if(file != null){
             vcb.freeBlocks(file.getStartBlock(), file.getFileSize());
-            System.out.println("Deleted File" + fileName);
+            directory.remove(fileName);
+            System.out.println("Deleted File (" + fileName + ")");
 
             return;
         }
 
-        System.out.println("File Not Found"+fileName);
+        System.out.println("File Not Found ("+fileName+")");
     }
 
 
