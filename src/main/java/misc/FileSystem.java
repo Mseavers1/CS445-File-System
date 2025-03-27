@@ -2,6 +2,7 @@ package misc;
 
 import structures.*;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
@@ -51,7 +52,7 @@ public class FileSystem {
         // Creates the file
         FCB file = new FCB(fileName, size, startBlock);
         directory.put(fileName, file);
-        System.out.println("Created File ["+fileName+ "] Starting Block Number: " +startBlock + " Size of Block: "+size);
+        System.out.println("Created File ["+fileName+ "] Starting Block Number: " +startBlock + " Size of File: "+size);
     }
 
     /**
@@ -59,7 +60,13 @@ public class FileSystem {
      * @param fileName - name of the file
      * @return - Returns the handler id
      */
-    public int Open(String fileName) {
+    public int Open(String fileName) throws FileNotFoundException {
+
+        // Does the file exist?
+        if (directory.get(fileName) == null) {
+            System.out.println(fileName + " does not exist.");
+            throw new FileNotFoundException("File (" + fileName + ") directory does not exist.");
+        }
 
         // Check to see if a process has the file opened, if it does, increment open count only
         if (systemTable.containsFCB(fileName)) directory.get(fileName).incrementOpenCount();
@@ -78,7 +85,7 @@ public class FileSystem {
     public void Close(Integer handler) {
 
         // Check if handler exist in the per process (Can't close if not-opened)
-        if (!processTable.containsHandler(handler)) return;
+        if (!processTable.containsHandler(handler)) throw new NoSuchElementException("No processes are labeled with the handler " + handler + ". It may have been deleted or the file was never opened.");
 
         // Get filename
         String fileName = processTable.getFileName(handler);
@@ -100,6 +107,9 @@ public class FileSystem {
 
         // If not, remove file from system open file table
         systemTable.removeFile(fileName);
+
+        // If file is pending deletion, delete it
+        if (file.isPendingDeletion()) removeFile(file, file.getFileName());
     }
 
     /**
@@ -111,7 +121,7 @@ public class FileSystem {
     public void Write(int handler, byte[] data) throws IOException {
 
         // Does the handler exist? If not, return
-        if (!processTable.containsHandler(handler)) return;
+        if (!processTable.containsHandler(handler)) throw new NoSuchElementException("No processes are labeled with the handler " + handler + ". It may have been deleted or the file was never opened.");
 
         // Get filename
         String fileName = processTable.getFileName(handler);
@@ -160,7 +170,7 @@ public class FileSystem {
     public byte[] Read(int handler) throws IOException {
 
         // Does the handler exist? If not, throw error
-        if (!processTable.containsHandler(handler)) throw new IOException("The handler (" + handler + ") does not exist!");
+        if (!processTable.containsHandler(handler)) throw new IOException("No processes are labeled with the handler " + handler + ". It may have been deleted or the file was never opened.");
 
         // Get filename
         String fileName = processTable.getFileName(handler);
@@ -195,6 +205,13 @@ public class FileSystem {
      * Lists all files in the directory
      */
     public void Dir() {
+
+        // Is directory empty?
+        if (directory.size() <= 0) {
+            System.out.println("Directory is empty!");
+            return;
+        }
+
         System.out.println("All files in current directory:");
 
         Enumeration<String> keys = directory.keys();
@@ -206,23 +223,42 @@ public class FileSystem {
         }
     }
 
-    // Deletes a file
+    /**
+     * Deletes a file
+     * @param fileName - name of the file
+     */
     public void Delete(String fileName) {
 
-        // What if the file is open? --> probably close it then deleted it?
-
-        // What if the file is currently being written to?
-
         FCB file = directory.get(fileName);
-        if(file != null){
-            vcb.freeBlocks(file.getStartBlock(), file.getFileSize());
-            directory.remove(fileName);
-            System.out.println("Deleted File (" + fileName + ")");
 
+        // Does the file exist? If not, exit
+        if (file == null) {
+            System.out.println("File Not Found ("+fileName+")");
             return;
         }
 
-        System.out.println("File Not Found ("+fileName+")");
+        // What if the file is currently opened by some process?
+        if (file.getOpenCount() > 0) {
+
+            // Pend deletion and continue running the process
+            file.setPendingDeletion(true);
+            System.out.println("File Deletion is pending due since the file is currently opened by this or another process.");
+            return;
+        }
+
+        removeFile(file, fileName);
+    }
+
+    // Function that removes the actual files
+    public void removeFile(FCB file, String fileName) {
+
+        // Free space in blocks
+        vcb.freeBlocks(file.getStartBlock(), file.getFileSize());
+
+        // Remove from directory
+        directory.remove(fileName);
+
+        System.out.println("Deleted File (" + fileName + ")");
     }
 
 

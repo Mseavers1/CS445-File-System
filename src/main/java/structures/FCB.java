@@ -7,12 +7,14 @@ public class FCB {
     private int fileSize;
     private int startBlock;
     private int openCount;
+    private boolean isPendingDeletion;
 
     public FCB(String fileName, int size, int start) {
         this.fileName = fileName;
         this.fileSize = size;
         this.startBlock = start;
         this.openCount = 0;
+        isPendingDeletion = false;
     }
 
     public int getOpenCount(){return openCount;}
@@ -24,7 +26,12 @@ public class FCB {
     public String getFileName(){return fileName;}
 
     public void incrementOpenCount(){openCount++;}
+
     public void decrementOpenCount(){openCount--;}
+
+    public boolean isPendingDeletion(){return isPendingDeletion;}
+
+    public void setPendingDeletion(boolean pendingDeletion){isPendingDeletion = pendingDeletion;}
 
     @Override
     public String toString() {

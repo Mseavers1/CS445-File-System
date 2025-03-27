@@ -20,6 +20,11 @@ public class VCB {
         this.blockBitMap[0] = true; // First block is being used as the VCB
     }
 
+    /**
+     * Allocates free blocks to memory
+     * @param size - Size needed to be allocated
+     * @return - starting block for the given file
+     */
     public synchronized int allocateBlocks(int size){
 
         // Convert size to number of blocks
@@ -52,12 +57,17 @@ public class VCB {
         return -1; // No Contigious block
     }
 
-    // Free allocated blocks
+    /**
+     * Frees up blocks
+     * @param startBlock - Starting block to beginning clearing in memory
+     * @param size - Size of the file
+     */
     public synchronized void freeBlocks(int startBlock, int size) {
 
         // Convert size to number of blocks
         int totalNumberOfBlocks = (int) Math.ceil((float) size / (float) sizeOfBlocks);
 
+        // Set bitmap to false for the free spaces
         for (int i = startBlock; i < startBlock + totalNumberOfBlocks; i++) {
             blockBitMap[i] = false;
         }

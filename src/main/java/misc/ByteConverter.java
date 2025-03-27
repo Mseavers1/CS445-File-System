@@ -2,12 +2,25 @@ package misc;
 
 import java.nio.charset.StandardCharsets;
 
+/**
+ * Helper class that converts from bytes[] to string and vise versa
+ */
 public class ByteConverter {
 
+    /**
+     * Convert strings to byte[]
+     * @param str - the string you want to convert
+     * @return - byte[] of the given string
+     */
     public static byte[] convert(String str) {
         return str.getBytes(StandardCharsets.UTF_8);
     }
 
+    /**
+     * Convert byte[] to string
+     * @param bytes - the given array to turn into a string
+     * @return - string of the given byte[]
+     */
     public static String convert(byte[] bytes) {
         return new String(bytes, StandardCharsets.UTF_8).replace("\0", "");
     }
