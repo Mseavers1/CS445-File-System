@@ -17,11 +17,11 @@ public class Simulation {
         );
 
         Process process2 = new Process(fs, "Process2", new Process.ProcessBuilder()
-                //.create("test.txt", 9000)
-                .open("test.txt")
-                .write("test.txt", "I don't know what I am doing, but cool beans.")
-                .readString("test.txt")
-                .close("test.txt")
+                //.create("test1.txt", 9000)
+                .open("test1.txt")
+                .write("test1.txt", "I don't know what I am doing, but cool beans.")
+                .readString("test1.txt")
+                .close("test1.txt")
         );
 
         process1.start();
