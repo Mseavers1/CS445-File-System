@@ -3,9 +3,14 @@ package structures;
 import misc.ByteConverter;
 import misc.FileSystem;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.*;
 
+/**
+ * Class that creates process threads for the simulation
+ * Uses builder to build processes the user wants
+ */
 public class Process extends Thread {
 
     private List<String> instructions;
@@ -32,13 +37,18 @@ public class Process extends Thread {
 
             try {
                 executeInstruction(instruction);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
+            }
+            catch (Exception e) {
+                System.out.println(processName + ": Instruction Failed (" + e.getMessage() + ")");
             }
         }
     }
 
-    private void executeInstruction(String instruction) throws IOException {
+    /**
+     * Execute code of a certain instruction
+     * @param instruction - name of the instruction
+     */
+    private void executeInstruction(String instruction) throws IOException, FileNotFoundException {
 
         String instruction_type = instruction.split(" ")[0];
         String filename = "";
@@ -50,9 +60,9 @@ public class Process extends Thread {
         if (Objects.equals(instruction_type, "--Create")) {
             int fileSize = Integer.parseInt(instruction.split(" ")[2]);
 
-            System.out.println();
+            //System.out.println();
             fileSystem.Create(filename, fileSize);
-            System.out.println();
+            //System.out.println();
         }
 
         else if (Objects.equals(instruction_type, "--Open")) {
@@ -61,26 +71,45 @@ public class Process extends Thread {
         }
 
         else if (Objects.equals(instruction_type, "--Close")) {
-            fileSystem.Close(handlers.get(filename));
+
+            int handler = -1;
+
+            if (handlers.get(filename) != null) handler = handlers.get(filename);
+
+            fileSystem.Close(handler);
         }
 
         else if (Objects.equals(instruction_type, "--ReadString")) {
-            byte[] content = fileSystem.Read(handlers.get(filename));
 
-            System.out.println();
+            int handler = -1;
+
+            if (handlers.get(filename) != null) handler = handlers.get(filename);
+
+            byte[] content = fileSystem.Read(handler);
+
+            //System.out.println();
             System.out.println(filename + ": " + ByteConverter.convert(content));
-            System.out.println();
+            //System.out.println();
         }
 
         else if (Objects.equals(instruction_type, "--Read")) {
-            byte[] content = fileSystem.Read(handlers.get(filename));
 
-            System.out.println();
+            int handler = -1;
+
+            if (handlers.get(filename) != null) handler = handlers.get(filename);
+
+            byte[] content = fileSystem.Read(handler);
+
+            //System.out.println();
             System.out.println(filename + ": " + Arrays.toString(content));
-            System.out.println();
+            //System.out.println();
         }
 
         else if (Objects.equals(instruction_type, "--Write")) {
+
+            int handler = -1;
+
+            if (handlers.get(filename) != null) handler = handlers.get(filename);
 
             int index = instruction.indexOf(filename) + filename.length() + 1;
             String strContent = instruction.substring(index);
@@ -88,24 +117,24 @@ public class Process extends Thread {
             if (strContent.charAt(0) == '[') {
                 byte[] content = ByteConverter.convertStringToByteArray(strContent);
 
-                fileSystem.Write(handlers.get(filename), content);
+                fileSystem.Write(handler, content);
             }
             else {
-                fileSystem.Write(handlers.get(filename), ByteConverter.convert(strContent));
+                fileSystem.Write(handler, ByteConverter.convert(strContent));
             }
 
         }
 
         else if (Objects.equals(instruction_type, "--Dir")) {
-            System.out.println();
+            //System.out.println();
             fileSystem.Dir();
-            System.out.println();
+            //System.out.println();
         }
 
         else if (Objects.equals(instruction_type, "--Delete")) {
-            System.out.println();
+            //System.out.println();
             fileSystem.Delete(filename);
-            System.out.println();
+            //System.out.println();
         }
 
         else {
@@ -114,6 +143,9 @@ public class Process extends Thread {
 
     }
 
+    /**
+     * Builder architecture that works for the Process class
+     */
     public static class ProcessBuilder {
         private List<String> instructions = new ArrayList<>();
 

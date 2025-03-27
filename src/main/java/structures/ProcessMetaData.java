@@ -1,5 +1,8 @@
 package structures;
 
+/**
+ * Holds the metadata for the per-process table
+ */
 public class ProcessMetaData {
 
     public static final int IDLE = 0, READ = 1, WRITE = 2;
